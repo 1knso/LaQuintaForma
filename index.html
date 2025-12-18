@@ -2,7 +2,6 @@
 <html lang="es">
 <head>
     <link rel="manifest" href="manifest.json">
-
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="LQM">
@@ -16,110 +15,94 @@
     
     <style>
         :root {
-            /* --- PALETA ATMOSFÉRICA --- */
             --wood-rich: #2a1b12;
             --parchment: #e3d6c0;
             --ink: #2b1f1f;
             --ink-faded: #2b1f1f80;
-            
-            /* UI Stats */
             --leather-dark: #151010;
             --gold-text: #c5a059;
             --gold-dim: #7d6230;
-
-            /* Axin */
             --fog-bg: #0e0e12;
             --rune-glow: #89cff0;
             --alert-red: #8a1c1c;
+            --save-green: #2e7d32;
 
-            /* Tipografías */
             --f-title: 'Cinzel Decorative', cursive;
             --f-hand: 'Homemade Apple', cursive; 
             --f-body: 'IM Fell DW Pica', serif;
-            --f-mystic: 'Nanum Myeongjo', serif;
         }
 
-        /* Reset y Optimización Táctil */
         * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; -webkit-tap-highlight-color: transparent; }
-        
-        body { 
-            height: 100vh; 
-            overflow: hidden; 
-            background: #000; 
-            font-family: var(--f-body); 
-            color: var(--ink);
-            /* Evita el efecto rebote en iOS/Android */
-            overscroll-behavior: none;
-        }
+        body { height: 100vh; overflow: hidden; background: #000; font-family: var(--f-body); color: var(--ink); overscroll-behavior: none; }
 
-        /* --- VISTA 1: EL ESCRITORIO --- */
+        /* --- VISTA 1: ESCRITORIO --- */
         .study-view {
             position: absolute; inset: 0;
             background-color: var(--wood-rich);
-            /* OPTIMIZACIÓN: Gradiente CSS en lugar de SVG Noise pesado */
-            background-image: 
-                radial-gradient(circle at center, transparent 0%, #000 120%),
-                repeating-linear-gradient(45deg, rgba(255,255,255,0.03) 0px, transparent 1px, transparent 10px);
+            background-image: radial-gradient(circle at center, transparent 0%, #000 120%), repeating-linear-gradient(45deg, rgba(255,255,255,0.03) 0px, transparent 1px, transparent 10px);
             display: flex; justify-content: center; align-items: center;
-            transition: opacity 0.4s ease; /* Transición más rápida para móvil */
+            /* OPTIMIZACIÓN: Transición más rápida (0.3s) */
+            transition: opacity 0.3s ease-out; 
         }
 
-        /* --- EL PERGAMINO --- */
+        /* --- PERGAMINO --- */
         .parchment-sheet {
             width: 90%; max-width: 500px; height: 85vh;
             background-color: var(--parchment);
             color: var(--ink);
-            padding: 3rem 1.5rem; /* Ajustado padding para pantallas estrechas */
+            padding: 3rem 1.5rem;
             position: relative;
             z-index: 10;
-            
-            /* Sombra optimizada */
             box-shadow: 0 5px 20px rgba(0,0,0,0.8);
             border-radius: 4px;
-            /* OPTIMIZACIÓN: Eliminado SVG Noise de fondo, usando textura sutil CSS */
             background-image: linear-gradient(to bottom right, rgba(0,0,0,0.05), transparent 40%, rgba(0,0,0,0.1));
-            
-            /* Clip path simplificado */
             clip-path: polygon(0% 0%, 100% 1%, 98% 99%, 2% 100%);
-            
-            overflow-y: auto;
-            -webkit-overflow-scrolling: touch; /* Scroll suave en iOS */
+            overflow-y: auto; -webkit-overflow-scrolling: touch;
             transform: rotate(-1deg);
-            transition: transform 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+            transition: transform 0.3s;
         }
 
-        /* --- DRAWER (STATS) --- */
-        .stats-drawer {
-            position: absolute; top: 0; right: 0; height: 100%;
-            width: 0;
-            background-color: var(--leather-dark);
-            /* Patrón simple CSS */
-            background-image: linear-gradient(45deg, #1a1a1a 25%, transparent 25%, transparent 75%, #1a1a1a 75%, #1a1a1a), 
-            linear-gradient(45deg, #1a1a1a 25%, transparent 25%, transparent 75%, #1a1a1a 75%, #1a1a1a);
-            background-size: 10px 10px;
-            box-shadow: -5px 0 30px rgba(0,0,0,0.9);
-            z-index: 5;
-            overflow-y: auto;
-            overflow-x: hidden;
-            display: flex; flex-direction: column; padding-top: 80px;
-            border-left: 2px solid var(--gold-dim);
-            transition: width 0.3s ease-out;
+        /* --- NUEVO MODAL DE STATS (Reemplaza al Drawer lateral) --- */
+        .stats-overlay {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 200;
+            display: none; justify-content: center; align-items: center;
+            backdrop-filter: blur(2px);
+            opacity: 0; transition: opacity 0.2s;
         }
-        .stats-drawer.active { width: 140px; }
+        .stats-overlay.active { opacity: 1; }
 
-        .stat-row {
-            padding: 10px 5px;
+        .stats-card {
+            background: var(--leather-dark);
+            border: 2px solid var(--gold-dim);
+            border-radius: 10px;
+            padding: 20px;
+            width: 85%; max-width: 320px;
+            box-shadow: 0 0 30px rgba(197, 160, 89, 0.2);
+            display: grid; grid-template-columns: 1fr 1fr; gap: 15px;
+            position: relative;
+        }
+        /* Decoración de esquinas */
+        .stats-card::after {
+            content: ''; position: absolute; inset: 5px; border: 1px solid rgba(197, 160, 89, 0.3); pointer-events: none; border-radius: 6px;
+        }
+
+        .stat-box {
             display: flex; flex-direction: column; align-items: center;
-            border-bottom: 1px solid rgba(197, 160, 89, 0.15);
+            padding: 10px; background: rgba(255,255,255,0.03); border-radius: 4px;
         }
-        .stat-label { color: var(--gold-text); font-family: var(--f-title); font-size: 0.7rem; letter-spacing: 1px; opacity: 0.8; }
+        .stat-label { color: var(--gold-text); font-family: var(--f-title); font-size: 0.7rem; opacity: 0.8; letter-spacing: 1px; }
         .stat-input {
             background: transparent; border: none; outline: none;
-            color: var(--gold-text); font-family: var(--f-body); font-size: 1.5rem;
-            text-align: center; width: 100%;
-            border-bottom: 1px dashed transparent;
+            color: #fff; font-family: var(--f-title); font-size: 1.8rem;
+            text-align: center; width: 100%; text-shadow: 0 0 5px var(--gold-dim);
         }
-        body.editing .stat-input { border-bottom: 1px dashed var(--gold-dim); background: rgba(255,255,255,0.05); }
+        body.editing .stat-input { border-bottom: 1px dashed var(--gold-dim); background: rgba(255,255,255,0.1); }
+
+        .close-stats-btn {
+            grid-column: span 2; margin-top: 10px;
+            background: transparent; border: 1px solid var(--gold-dim); color: var(--gold-text);
+            padding: 8px; font-family: var(--f-title); cursor: pointer;
+        }
 
         /* --- SELLO DE LACRE --- */
         .wax-seal {
@@ -131,59 +114,29 @@
             display: flex; justify-content: center; align-items: center;
             font-family: var(--f-title); font-size: 1.4rem; color: rgba(50,0,0,0.4);
             border: 2px solid rgba(255,255,255,0.1);
-            cursor: pointer;
-            transition: transform 0.2s;
-            /* Aumentar zona de toque invisible */
-            touch-action: manipulation;
+            cursor: pointer; transition: transform 0.2s; touch-action: manipulation;
         }
-        .wax-seal.open { transform: rotate(45deg); border-color: var(--gold-text); color: var(--gold-dim); }
+        .wax-seal:active { transform: scale(0.9); }
 
-        /* --- CONTENIDO PERGAMINO --- */
+        /* --- CONTENIDO --- */
         .char-header { text-align: center; margin-bottom: 1.5rem; }
-        
-        .char-name { 
-            font-family: var(--f-hand); font-size: 1.8rem; color: var(--ink); 
-            display: block; min-height: 40px; outline: none; border-bottom: 1px solid transparent; 
-            line-height: 1.2;
-        }
-        .char-name:empty::before { content: 'Nombre...'; color: var(--ink-faded); pointer-events: none; }
+        .char-name { font-family: var(--f-hand); font-size: 1.8rem; color: var(--ink); display: block; min-height: 40px; outline: none; border-bottom: 1px solid transparent; line-height: 1.2; }
         .char-name:focus { border-bottom: 1px solid var(--ink); }
-
-        .char-class { 
-            font-family: var(--f-title); font-size: 0.85rem; letter-spacing: 1px; 
-            text-transform: uppercase; margin-top: 0.5rem; display: block; outline: none; color: #554433; 
-        }
+        .char-name:empty::before { content: 'Nombre...'; color: var(--ink-faded); pointer-events: none; }
+        .char-class { font-family: var(--f-title); font-size: 0.85rem; letter-spacing: 1px; text-transform: uppercase; margin-top: 0.5rem; display: block; outline: none; color: #554433; }
         .char-class:empty::before { content: 'Clase...'; color: #55443380; text-transform: none; font-style: italic; }
 
-        /* Inventario */
-        .inventory-section h3 { 
-            font-family: var(--f-title); text-align: center; margin-bottom: 0.8rem; 
-            border-top: 1px solid var(--ink); border-bottom: 1px solid var(--ink); padding: 5px;
-            font-size: 1rem;
-        }
+        .inventory-section h3 { font-family: var(--f-title); text-align: center; margin-bottom: 0.8rem; border-top: 1px solid var(--ink); border-bottom: 1px solid var(--ink); padding: 5px; font-size: 1rem; }
         .inventory-list { list-style: none; padding: 0; min-height: 50px; }
-        .inventory-list li {
-            padding: 10px 0; /* Más espacio vertical para dedos */
-            border-bottom: 1px dashed rgba(43, 31, 31, 0.2);
-            font-size: 1.1rem; display: flex; justify-content: space-between; align-items: center;
-        }
+        .inventory-list li { padding: 10px 0; border-bottom: 1px dashed rgba(43, 31, 31, 0.2); font-size: 1.1rem; display: flex; justify-content: space-between; align-items: center; }
         .inv-text { width: 80%; outline: none; }
-        .inv-delete { 
-            opacity: 0; color: var(--alert-red); 
-            padding: 5px 10px; /* Zona de toque ampliada */
-            font-weight: bold; font-size: 1.2rem;
-        }
+        .inv-delete { opacity: 0; color: var(--alert-red); padding: 5px 10px; font-weight: bold; font-size: 1.2rem; }
         body.editing .inv-delete { opacity: 1; }
-
         .empty-msg { text-align: center; color: var(--ink-faded); font-style: italic; margin-top: 1rem; font-size: 0.9rem; }
-        
-        .add-btn-styled {
-            width: 100%; margin-top: 20px; padding: 12px; background: transparent; border: 1px dashed var(--ink);
-            font-family: var(--f-title); color: var(--ink); opacity: 0.6; display: none; font-size: 1rem;
-        }
+        .add-btn-styled { width: 100%; margin-top: 20px; padding: 12px; background: transparent; border: 1px dashed var(--ink); font-family: var(--f-title); color: var(--ink); opacity: 0.6; display: none; font-size: 1rem; }
         body.editing .add-btn-styled { display: block; }
 
-        /* --- BOTÓN AXIN (Joya) --- */
+        /* --- BOTÓN AXIN --- */
         .axin-gem {
             position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%);
             width: 60px; height: 60px;
@@ -195,96 +148,73 @@
         }
         .axin-gem:active { transform: translateX(-50%) scale(0.95); }
 
-        /* --- VISTA 2: EL AXIN (MENTE) --- */
+        /* --- VISTA 2: EL AXIN (OPTIMIZADO) --- */
         .axin-view {
             position: fixed; inset: 0; 
-            /* OPTIMIZACIÓN: Fondo estático en lugar de animación compleja */
             background: radial-gradient(circle at center, #1a1a2e 0%, #000 90%);
             z-index: 100; opacity: 0; pointer-events: none;
-            transition: opacity 0.5s ease; 
-            overflow: hidden; perspective: 1000px;
-            display: flex; flex-direction: column; align-items: center;
+            /* OPTIMIZACIÓN: Reducido a 0.3s */
+            transition: opacity 0.3s ease-out; 
+            overflow: hidden; display: flex; flex-direction: column; align-items: center;
         }
         .axin-view.active { opacity: 1; pointer-events: all; }
-
-        /* Niebla: Eliminada la animación pesada, sustituida por viñeta estática CSS */
         .fog-container { position: absolute; inset: 0; pointer-events: none; background: radial-gradient(transparent 50%, #000 100%); opacity: 0.6; }
 
-        .axin-title {
-            margin-top: 3rem; font-family: var(--f-title); color: var(--rune-glow);
-            letter-spacing: 4px; font-size: 1.4rem; z-index: 2; text-shadow: 0 0 15px var(--rune-glow); opacity: 0.9;
-            text-align: center;
-        }
-
+        .axin-title { margin-top: 3rem; font-family: var(--f-title); color: var(--rune-glow); letter-spacing: 4px; font-size: 1.4rem; z-index: 2; text-shadow: 0 0 15px var(--rune-glow); opacity: 0.9; text-align: center; }
         .rune-grid { flex: 1; width: 100%; display: flex; flex-wrap: wrap; justify-content: center; align-content: flex-start; gap: 1.5rem; z-index: 2; padding: 2rem 1rem; overflow-y: auto; -webkit-overflow-scrolling: touch; }
         
         .rune-card {
             display: flex; flex-direction: column; align-items: center; position: relative;
-            /* Animación suave y barata de flotación */
-            animation: float 5s ease-in-out infinite; 
-            animation-delay: var(--d);
-            width: 80px;
+            animation: float 5s ease-in-out infinite; animation-delay: var(--d); width: 80px;
         }
         @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
         
         .rune-symbol { font-size: 2.5rem; color: #fff; text-shadow: 0 0 10px var(--rune-glow); transition: transform 0.2s; }
         .rune-name { margin-top: 5px; color: var(--rune-glow); font-family: var(--f-title); font-size: 0.75rem; opacity: 0.8; text-align: center; }
-        
-        .rune-delete {
-            position: absolute; top: -8px; right: -8px; width: 26px; height: 26px; /* Más grande para tocar */
-            background: var(--alert-red); color: white; border-radius: 50%;
-            display: none; align-items: center; justify-content: center; font-weight: bold; font-size: 0.9rem;
-            box-shadow: 0 0 5px rgba(0,0,0,0.5);
-        }
+        .rune-delete { position: absolute; top: -8px; right: -8px; width: 26px; height: 26px; background: var(--alert-red); color: white; border-radius: 50%; display: none; align-items: center; justify-content: center; font-weight: bold; font-size: 0.9rem; box-shadow: 0 0 5px rgba(0,0,0,0.5); }
         body.editing .rune-delete { display: flex; }
+        .back-btn { position: absolute; top: 15px; left: 15px; z-index: 10; background: transparent; border: 1px solid #444; color: #888; padding: 8px 12px; font-family: var(--f-title); font-size: 0.9rem; border-radius: 4px; }
 
-        .back-btn {
-            position: absolute; top: 15px; left: 15px; z-index: 10;
-            background: transparent; border: 1px solid #444; color: #888;
-            padding: 8px 12px; font-family: var(--f-title); font-size: 0.9rem;
-            border-radius: 4px;
-        }
-
-        /* Controles Globales */
-        .edit-toggle {
+        /* --- BOTONES DE CONTROL (Edición y Datos) --- */
+        .controls-container {
             position: fixed; bottom: 20px; right: 20px; z-index: 200;
-            font-size: 2.2rem; cursor: pointer; filter: grayscale(1); transition: transform 0.2s;
-            background: rgba(0,0,0,0.3); border-radius: 50%; /* Fondo para legibilidad */
+            display: flex; gap: 15px; align-items: flex-end;
         }
-        body.editing .edit-toggle { filter: grayscale(0) drop-shadow(0 0 5px gold); transform: scale(1.1); }
 
-        /* Modal y Alertas */
-        .modal-overlay, .sys-alert-overlay { 
-            position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 300; 
-            display: none; justify-content: center; align-items: center; backdrop-filter: blur(2px); 
+        .edit-toggle {
+            font-size: 2.2rem; cursor: pointer; filter: grayscale(1); transition: transform 0.2s;
+            background: rgba(0,0,0,0.6); border-radius: 50%; width: 55px; height: 55px;
+            display: flex; justify-content: center; align-items: center;
         }
-        .modal-box, .sys-alert-box { 
-            background: #121212; border: 1px solid #333; padding: 1.5rem; width: 90%; max-width: 350px; color: #ccc; 
-            box-shadow: 0 10px 25px rgba(0,0,0,0.8); border-radius: 8px;
+        body.editing .edit-toggle { filter: grayscale(0) drop-shadow(0 0 5px gold); transform: scale(1.1); background: var(--wood-rich); border: 1px solid var(--gold-dim); }
+
+        /* Botones de Data (Ocultos hasta editar) */
+        .data-btn {
+            width: 45px; height: 45px; border-radius: 50%; background: var(--wood-rich);
+            border: 1px solid var(--gold-dim); color: var(--gold-text);
+            display: none; justify-content: center; align-items: center; font-size: 1.2rem;
+            cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.5);
         }
-        .modal-box input, .modal-box textarea { 
-            width: 100%; background: #000; border: 1px solid #333; color: #fff; padding: 12px; margin-bottom: 15px; 
-            font-family: var(--f-body); font-size: 1rem; border-radius: 4px;
-        }
+        body.editing .data-btn { display: flex; animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        @keyframes popIn { from { transform: scale(0) translateY(20px); opacity: 0; } to { transform: scale(1) translateY(0); opacity: 1; } }
+
+        /* Modales Generales */
+        .modal-overlay, .sys-alert-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 300; display: none; justify-content: center; align-items: center; backdrop-filter: blur(2px); }
+        .modal-box, .sys-alert-box { background: #121212; border: 1px solid #333; padding: 1.5rem; width: 90%; max-width: 350px; color: #ccc; box-shadow: 0 10px 25px rgba(0,0,0,0.8); border-radius: 8px; }
+        .modal-box input, .modal-box textarea { width: 100%; background: #000; border: 1px solid #333; color: #fff; padding: 12px; margin-bottom: 15px; font-family: var(--f-body); font-size: 1rem; border-radius: 4px; }
         
         .sys-alert-box { border-color: var(--rune-glow); text-align: center; }
         .sys-alert-box h3 { color: var(--rune-glow); margin-bottom: 1rem; font-family: var(--f-title); }
         .sys-alert-actions { display: flex; gap: 10px; margin-top: 1.5rem; }
-        .sys-alert-actions button, .modal-box button {
-            flex: 1; padding: 12px; font-family: var(--f-title); cursor: pointer; border-radius: 4px; font-size: 0.9rem;
-        }
+        .sys-alert-actions button, .modal-box button { flex: 1; padding: 12px; font-family: var(--f-title); cursor: pointer; border-radius: 4px; font-size: 0.9rem; }
         #mSave, #sysAlertOk { background: var(--rune-glow); color: #000; border: none; font-weight: bold; }
         #mCancel, #sysAlertCancel { background: transparent; border: 1px solid #555; color: #aaa; }
-
     </style>
 </head>
 <body>
 
     <div class="study-view" id="studyView">
         
-        <div class="stats-drawer" id="statsDrawer">
-            </div>
-
         <div class="parchment-sheet" id="parchment">
             <div class="wax-seal" id="statsBtn" title="Atributos">✦</div>
             
@@ -304,15 +234,27 @@
         <div class="axin-gem" id="enterAxinBtn">✧</div>
     </div>
 
-    <div class="axin-view" id="axinView">
-        <div class="fog-container"></div> <button class="back-btn" id="exitAxinBtn">← Volver</button>
-        <h1 class="axin-title">SANTUARIO INTERIOR</h1>
+    <div class="stats-overlay" id="statsModal">
+        <div class="stats-card" id="statsGrid">
+            <button class="close-stats-btn" id="closeStatsBtn">Cerrar</button>
+        </div>
+    </div>
 
+    <div class="axin-view" id="axinView">
+        <div class="fog-container"></div>
+        <button class="back-btn" id="exitAxinBtn">← Volver</button>
+        <h1 class="axin-title">SANTUARIO INTERIOR</h1>
         <div class="rune-grid" id="runeGrid"></div>
         <button class="add-btn-styled" id="addRuneBtn" style="color:var(--rune-glow); border-color:var(--rune-glow); max-width: 250px; margin-bottom: 80px;">+ Inscribir Axioma</button>
     </div>
 
-    <div class="edit-toggle" id="editToggle">🗝️</div>
+    <div class="controls-container">
+        <input type="file" id="importInput" style="display: none;" accept=".json">
+        
+        <div class="data-btn" id="btnImport" title="Importar Ficha">📂</div>
+        <div class="data-btn" id="btnExport" title="Exportar Ficha">💾</div>
+        <div class="edit-toggle" id="editToggle">🗝️</div>
+    </div>
 
     <div class="modal-overlay" id="modal">
         <div class="modal-box">
@@ -339,7 +281,6 @@
     </div>
 
     <script>
-        // --- CONFIGURACIÓN ---
         const STAT_NAMES = ["Vigor", "Pulso", "Temple", "Lógica", "Instinto", "Presencia"];
         const defaultData = {
             name: "", class: "", inventory: [], axioms: [],
@@ -350,56 +291,109 @@
         let isEditing = false;
         let editId = null;
 
-        // --- DOM ---
         const $ = (id) => document.getElementById(id);
         const dom = {
             body: document.body, study: $('studyView'), axin: $('axinView'),
-            parchment: $('parchment'), drawer: $('statsDrawer'), seal: $('statsBtn'),
+            parchment: $('parchment'), statsModal: $('statsModal'), statsGrid: $('statsGrid'), 
+            seal: $('statsBtn'), closeStats: $('closeStatsBtn'),
             name: $('charName'), class: $('charClass'), invList: $('inventoryList'), invEmpty: $('invEmpty'),
             runeGrid: $('runeGrid'), toggle: $('editToggle'),
             modal: $('modal'), inputs: { name: $('mName'), icon: $('mIcon'), desc: $('mDesc') },
-            statInputs: {}
+            statInputs: {},
+            btnExport: $('btnExport'), btnImport: $('btnImport'), fileInput: $('importInput')
         };
 
         function save() { localStorage.setItem('grimorio_final_data', JSON.stringify(data)); }
 
-        // --- INICIALIZACIÓN ---
         function init() {
-            renderStatsPanel();
+            renderStatsCard();
             renderStudy();
             renderAxin();
         }
 
-        // 1. Panel de Stats
-        function renderStatsPanel() {
-            dom.drawer.innerHTML = '';
+        // --- 1. NUEVA UI STATS (MODAL CENTRAL) ---
+        function renderStatsCard() {
+            // Limpiar grid pero mantener el botón de cerrar
+            const children = Array.from(dom.statsGrid.children);
+            children.forEach(c => { if(c.id !== 'closeStatsBtn') c.remove(); });
+
             STAT_NAMES.forEach(stat => {
                 const val = data.stats[stat] || "+0";
-                const row = document.createElement('div');
-                row.className = 'stat-row';
-                row.innerHTML = `<span class="stat-label">${stat.toUpperCase()}</span><input type="text" class="stat-input" value="${val}" readonly>`;
+                const box = document.createElement('div');
+                box.className = 'stat-box';
+                box.innerHTML = `<span class="stat-label">${stat.toUpperCase()}</span><input type="text" class="stat-input" value="${val}" readonly>`;
                 
-                const input = row.querySelector('input');
+                const input = box.querySelector('input');
                 input.addEventListener('blur', (e) => { data.stats[stat] = e.target.value; save(); });
-                dom.drawer.appendChild(row);
+                dom.statsGrid.insertBefore(box, dom.closeStats); // Insertar antes del botón cerrar
                 dom.statInputs[stat] = input;
             });
         }
 
-        // Interacción Drawer (Movimiento suavizado para móvil)
+        // Abrir/Cerrar Modal Stats
         dom.seal.onclick = () => {
-            dom.seal.classList.toggle('open');
-            dom.drawer.classList.toggle('active');
+            dom.statsModal.style.display = 'flex';
+            setTimeout(() => dom.statsModal.classList.add('active'), 10);
+        };
+        dom.closeStats.onclick = () => {
+            dom.statsModal.classList.remove('active');
+            setTimeout(() => dom.statsModal.style.display = 'none', 200);
+        };
+        // Cerrar al pulsar fuera
+        dom.statsModal.onclick = (e) => {
+            if(e.target === dom.statsModal) dom.closeStats.click();
+        }
+
+        // --- 2. GESTIÓN DE DATOS (IMPORTAR/EXPORTAR) ---
+        
+        // Exportar
+        dom.btnExport.onclick = () => {
+            const dataStr = JSON.stringify(data, null, 2);
+            const blob = new Blob([dataStr], { type: "application/json" });
+            const url = URL.createObjectURL(blob);
             
-            if(dom.drawer.classList.contains('active')) {
-                // Desplazamiento más sutil en móvil para no perder foco
-                dom.parchment.style.transform = 'translateX(-40px) rotate(-1deg)';
-            } else {
-                dom.parchment.style.transform = 'translateX(0) rotate(-1deg)';
-            }
+            const a = document.createElement('a');
+            a.href = url;
+            const safeName = data.name.replace(/[^a-z0-9]/gi, '_').toLowerCase() || 'personaje';
+            a.download = `${safeName}_ficha.json`;
+            a.click();
+            URL.revokeObjectURL(url);
         };
 
-        // 2. Estudio
+        // Importar
+        dom.btnImport.onclick = () => dom.fileInput.click();
+        
+        dom.fileInput.onchange = (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                try {
+                    const imported = JSON.parse(event.target.result);
+                    // Validar estructura básica
+                    if(imported.stats && imported.inventory) {
+                        showConfirm("¿Sobrescribir la ficha actual con este archivo?").then(si => {
+                            if(si) {
+                                data = imported;
+                                save();
+                                init(); // Re-renderizar todo
+                                alert("Ficha cargada correctamente.");
+                            }
+                        });
+                    } else {
+                        alert("El archivo no parece ser una ficha válida.");
+                    }
+                } catch (err) {
+                    alert("Error al leer el archivo JSON.");
+                }
+            };
+            reader.readAsText(file);
+            // Limpiar input para permitir recargar el mismo archivo
+            dom.fileInput.value = ''; 
+        };
+
+        // --- 3. ESTUDIO ---
         function renderStudy() {
             dom.name.innerText = data.name;
             dom.class.innerText = data.class;
@@ -421,14 +415,13 @@
             data.name = dom.name.innerText; data.class = dom.class.innerText; save();
         }));
         $('addInvBtn').onclick = () => { data.inventory.push("..."); save(); renderStudy(); };
-        
         window.delInv = (i) => { 
             showConfirm("¿Quemar este objeto?").then((si) => {
                 if(si) { data.inventory.splice(i,1); save(); renderStudy(); }
             });
         };
 
-        // 3. Axin
+        // --- 4. AXIN (Optimizado) ---
         function renderAxin() {
             dom.runeGrid.innerHTML = '';
             if(data.axioms.length === 0) dom.runeGrid.innerHTML = '<div class="rune-empty-state" style="color:#666; text-align:center; font-style:italic; width:100%;">Silencio...</div>';
@@ -436,14 +429,12 @@
             data.axioms.forEach((ax, i) => {
                 const el = document.createElement('div');
                 el.className = 'rune-card';
-                // Delay escalonado para la animación de flotación
                 el.style.setProperty('--d', (i * 0.2) + 's');
                 el.innerHTML = `<div class="rune-delete" onclick="delRune(event, ${ax.id})">✖</div><div class="rune-symbol">${ax.icon}</div><div class="rune-name">${ax.name}</div>`;
                 el.onclick = (e) => { if(!e.target.classList.contains('rune-delete')) openModal(ax); };
                 dom.runeGrid.appendChild(el);
             });
         }
-        
         window.delRune = (e, id) => { 
             e.stopPropagation(); 
             showConfirm("¿Olvidar Axioma?").then((si) => {
@@ -451,7 +442,7 @@
             });
         };
 
-        // Modal
+        // --- MODALES & EDICIÓN ---
         function openModal(ax = null) {
             dom.modal.style.display = 'flex';
             editId = ax ? ax.id : null;
@@ -468,7 +459,6 @@
         };
         $('addRuneBtn').onclick = () => openModal(null);
 
-        // Edición
         dom.toggle.onclick = () => {
             isEditing = !isEditing;
             dom.body.classList.toggle('editing', isEditing);
@@ -479,13 +469,21 @@
             renderStudy();
         };
 
-        // Navegación
-        $('enterAxinBtn').onclick = () => { dom.axin.classList.add('active'); dom.study.style.opacity = 0; };
-        $('exitAxinBtn').onclick = () => { dom.axin.classList.remove('active'); dom.study.style.opacity = 1; };
+        // --- NAVEGACIÓN ---
+        $('enterAxinBtn').onclick = () => { 
+            dom.axin.classList.add('active'); 
+            // Optimización: Ocultar estudio tras la transición para ahorrar memoria, pero esperar a que termine
+            setTimeout(() => { if(dom.axin.classList.contains('active')) dom.study.style.opacity = 0; }, 300);
+        };
+        
+        $('exitAxinBtn').onclick = () => { 
+            dom.study.style.opacity = 1;
+            dom.axin.classList.remove('active'); 
+        };
 
         init();
 
-        // Alerta Personalizada
+        // --- ALERTA ---
         function showConfirm(mensaje) {
             return new Promise((resolve) => {
                 const overlay = document.getElementById('sysAlert');
