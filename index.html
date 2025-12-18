@@ -1,11 +1,11 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-        <link rel="manifest" href="manifest.json">
-    
+    <link rel="manifest" href="manifest.json">
+
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="Grimorio">
+    <meta name="apple-mobile-web-app-title" content="LQM">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>LA QUINTA FORMA | Ficha</title>
@@ -20,14 +20,14 @@
             --wood-rich: #2a1b12;
             --parchment: #e3d6c0;
             --ink: #2b1f1f;
-            --ink-faded: #2b1f1f80; /* Placeholders */
+            --ink-faded: #2b1f1f80;
             
-            /* UI Stats (Cuero Oscuro y Oro) */
+            /* UI Stats */
             --leather-dark: #151010;
             --gold-text: #c5a059;
             --gold-dim: #7d6230;
 
-            /* Axin (Niebla Mística) */
+            /* Axin */
             --fog-bg: #0e0e12;
             --rune-glow: #89cff0;
             --alert-red: #8a1c1c;
@@ -39,222 +39,243 @@
             --f-mystic: 'Nanum Myeongjo', serif;
         }
 
+        /* Reset y Optimización Táctil */
         * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; -webkit-tap-highlight-color: transparent; }
-        body { height: 100vh; overflow: hidden; background: #000; font-family: var(--f-body); color: var(--ink); }
+        
+        body { 
+            height: 100vh; 
+            overflow: hidden; 
+            background: #000; 
+            font-family: var(--f-body); 
+            color: var(--ink);
+            /* Evita el efecto rebote en iOS/Android */
+            overscroll-behavior: none;
+        }
 
         /* --- VISTA 1: EL ESCRITORIO --- */
         .study-view {
             position: absolute; inset: 0;
             background-color: var(--wood-rich);
-            /* Textura de madera realista */
+            /* OPTIMIZACIÓN: Gradiente CSS en lugar de SVG Noise pesado */
             background-image: 
-                linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.6)),
-                repeating-linear-gradient(90deg, transparent 0, transparent 2px, rgba(0,0,0,0.1) 4px),
-                url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.6' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.05'/%3E%3C/svg%3E");
+                radial-gradient(circle at center, transparent 0%, #000 120%),
+                repeating-linear-gradient(45deg, rgba(255,255,255,0.03) 0px, transparent 1px, transparent 10px);
             display: flex; justify-content: center; align-items: center;
-            transition: opacity 0.6s ease;
+            transition: opacity 0.4s ease; /* Transición más rápida para móvil */
         }
 
-        /* --- EL PERGAMINO (Hoja Principal) --- */
+        /* --- EL PERGAMINO --- */
         .parchment-sheet {
-            width: 85%; max-width: 500px; height: 85vh;
+            width: 90%; max-width: 500px; height: 85vh;
             background-color: var(--parchment);
             color: var(--ink);
-            padding: 4rem 2rem;
+            padding: 3rem 1.5rem; /* Ajustado padding para pantallas estrechas */
             position: relative;
-            z-index: 10; /* Por encima del drawer cuando está cerrado */
+            z-index: 10;
             
-            /* Sombra y Textura de Papel Roto */
-            box-shadow: 0 10px 40px rgba(0,0,0,0.7), inset 0 0 80px rgba(160, 130, 90, 0.4);
-            border-radius: 2px;
-            clip-path: polygon(0% 0%, 100% 1%, 99% 100%, 1% 99%); /* Efecto irregular */
-            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.03' numOctaves='4'/%3E%3CfeColorMatrix values='0 0 0 0 0.9 0 0 0 0 0.85 0 0 0 0 0.75 0 0 0 1 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
+            /* Sombra optimizada */
+            box-shadow: 0 5px 20px rgba(0,0,0,0.8);
+            border-radius: 4px;
+            /* OPTIMIZACIÓN: Eliminado SVG Noise de fondo, usando textura sutil CSS */
+            background-image: linear-gradient(to bottom right, rgba(0,0,0,0.05), transparent 40%, rgba(0,0,0,0.1));
+            
+            /* Clip path simplificado */
+            clip-path: polygon(0% 0%, 100% 1%, 98% 99%, 2% 100%);
             
             overflow-y: auto;
-            transform: rotate(-1deg); /* Rotación estética inicial */
-            transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+            -webkit-overflow-scrolling: touch; /* Scroll suave en iOS */
+            transform: rotate(-1deg);
+            transition: transform 0.3s cubic-bezier(0.25, 1, 0.5, 1);
         }
 
-        /* --- PANEL DE STATS (DRAWER) --- */
+        /* --- DRAWER (STATS) --- */
         .stats-drawer {
             position: absolute; top: 0; right: 0; height: 100%;
-            width: 0; /* Oculto inicialmente */
+            width: 0;
             background-color: var(--leather-dark);
-            background-image: repeating-linear-gradient(45deg, rgba(255,255,255,0.02) 0, rgba(255,255,255,0.02) 1px, transparent 1px, transparent 4px);
-            box-shadow: -10px 0 50px rgba(0,0,0,0.9);
-            z-index: 5; /* Debajo del pergamino */
-            overflow: hidden;
-            display: flex; flex-direction: column; padding-top: 90px;
+            /* Patrón simple CSS */
+            background-image: linear-gradient(45deg, #1a1a1a 25%, transparent 25%, transparent 75%, #1a1a1a 75%, #1a1a1a), 
+            linear-gradient(45deg, #1a1a1a 25%, transparent 25%, transparent 75%, #1a1a1a 75%, #1a1a1a);
+            background-size: 10px 10px;
+            box-shadow: -5px 0 30px rgba(0,0,0,0.9);
+            z-index: 5;
+            overflow-y: auto;
+            overflow-x: hidden;
+            display: flex; flex-direction: column; padding-top: 80px;
             border-left: 2px solid var(--gold-dim);
-            transition: width 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+            transition: width 0.3s ease-out;
         }
         .stats-drawer.active { width: 140px; }
 
         .stat-row {
-            padding: 12px 5px;
+            padding: 10px 5px;
             display: flex; flex-direction: column; align-items: center;
             border-bottom: 1px solid rgba(197, 160, 89, 0.15);
         }
-        .stat-label { color: var(--gold-text); font-family: var(--f-title); font-size: 0.7rem; letter-spacing: 1px; margin-bottom: 2px; opacity: 0.7; }
+        .stat-label { color: var(--gold-text); font-family: var(--f-title); font-size: 0.7rem; letter-spacing: 1px; opacity: 0.8; }
         .stat-input {
             background: transparent; border: none; outline: none;
-            color: var(--gold-text); font-family: var(--f-body); font-size: 1.6rem;
-            text-align: center; width: 60px;
+            color: var(--gold-text); font-family: var(--f-body); font-size: 1.5rem;
+            text-align: center; width: 100%;
             border-bottom: 1px dashed transparent;
         }
         body.editing .stat-input { border-bottom: 1px dashed var(--gold-dim); background: rgba(255,255,255,0.05); }
 
-        /* --- EL SELLO DE LACRE (Botón Menú) --- */
+        /* --- SELLO DE LACRE --- */
         .wax-seal {
-            position: absolute; top: 15px; right: 15px; z-index: 50;
-            width: 55px; height: 55px;
+            position: absolute; top: 10px; right: 10px; z-index: 50;
+            width: 50px; height: 50px;
             background: radial-gradient(circle at 30% 30%, #ff4d4d, #8a1c1c);
             border-radius: 50%;
             box-shadow: 2px 3px 6px rgba(0,0,0,0.4);
             display: flex; justify-content: center; align-items: center;
-            font-family: var(--f-title); font-size: 1.6rem; color: rgba(50,0,0,0.4);
+            font-family: var(--f-title); font-size: 1.4rem; color: rgba(50,0,0,0.4);
             border: 2px solid rgba(255,255,255,0.1);
             cursor: pointer;
-            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            transition: transform 0.2s;
+            /* Aumentar zona de toque invisible */
+            touch-action: manipulation;
         }
-        .wax-seal:active { transform: scale(0.9); }
-        .wax-seal.open { transform: rotate(45deg); border-color: var(--gold-text); color: var(--gold-dim); box-shadow: 0 0 15px var(--gold-dim); }
+        .wax-seal.open { transform: rotate(45deg); border-color: var(--gold-text); color: var(--gold-dim); }
 
-        /* --- CONTENIDO DEL PERGAMINO --- */
-        .char-header { text-align: center; margin-bottom: 2rem; }
+        /* --- CONTENIDO PERGAMINO --- */
+        .char-header { text-align: center; margin-bottom: 1.5rem; }
         
         .char-name { 
-            font-family: var(--f-hand); font-size: 2rem; color: var(--ink); 
-            display: block; min-height: 45px; outline: none; border-bottom: 1px solid transparent; transition: 0.3s;
+            font-family: var(--f-hand); font-size: 1.8rem; color: var(--ink); 
+            display: block; min-height: 40px; outline: none; border-bottom: 1px solid transparent; 
+            line-height: 1.2;
         }
         .char-name:empty::before { content: 'Nombre...'; color: var(--ink-faded); pointer-events: none; }
         .char-name:focus { border-bottom: 1px solid var(--ink); }
 
         .char-class { 
-            font-family: var(--f-title); font-size: 0.9rem; letter-spacing: 2px; 
+            font-family: var(--f-title); font-size: 0.85rem; letter-spacing: 1px; 
             text-transform: uppercase; margin-top: 0.5rem; display: block; outline: none; color: #554433; 
         }
-        .char-class:empty::before { content: 'Clase / Ocupación...'; color: #55443380; text-transform: none; font-style: italic; }
+        .char-class:empty::before { content: 'Clase...'; color: #55443380; text-transform: none; font-style: italic; }
 
         /* Inventario */
         .inventory-section h3 { 
-            font-family: var(--f-title); text-align: center; margin-bottom: 1rem; 
+            font-family: var(--f-title); text-align: center; margin-bottom: 0.8rem; 
             border-top: 1px solid var(--ink); border-bottom: 1px solid var(--ink); padding: 5px;
+            font-size: 1rem;
         }
         .inventory-list { list-style: none; padding: 0; min-height: 50px; }
         .inventory-list li {
-            padding: 8px 0; border-bottom: 1px dashed rgba(43, 31, 31, 0.2);
+            padding: 10px 0; /* Más espacio vertical para dedos */
+            border-bottom: 1px dashed rgba(43, 31, 31, 0.2);
             font-size: 1.1rem; display: flex; justify-content: space-between; align-items: center;
         }
-        .inv-text { width: 85%; outline: none; }
-        .inv-delete { opacity: 0; color: var(--alert-red); padding: 0 10px; font-weight: bold; }
+        .inv-text { width: 80%; outline: none; }
+        .inv-delete { 
+            opacity: 0; color: var(--alert-red); 
+            padding: 5px 10px; /* Zona de toque ampliada */
+            font-weight: bold; font-size: 1.2rem;
+        }
         body.editing .inv-delete { opacity: 1; }
 
-        .empty-msg { text-align: center; color: var(--ink-faded); font-style: italic; margin-top: 2rem; font-size: 1rem; }
+        .empty-msg { text-align: center; color: var(--ink-faded); font-style: italic; margin-top: 1rem; font-size: 0.9rem; }
         
         .add-btn-styled {
-            width: 100%; margin-top: 20px; padding: 10px; background: transparent; border: 1px dashed var(--ink);
-            font-family: var(--f-title); color: var(--ink); opacity: 0.6; display: none;
+            width: 100%; margin-top: 20px; padding: 12px; background: transparent; border: 1px dashed var(--ink);
+            font-family: var(--f-title); color: var(--ink); opacity: 0.6; display: none; font-size: 1rem;
         }
         body.editing .add-btn-styled { display: block; }
 
-        /* Botón AXIN (Joya Inferior) */
+        /* --- BOTÓN AXIN (Joya) --- */
         .axin-gem {
-            position: absolute; bottom: 25px; left: 50%; transform: translateX(-50%);
-            width: 65px; height: 65px;
+            position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%);
+            width: 60px; height: 60px;
             background: radial-gradient(circle at 30% 30%, #a8e6cf, #1de9b6 40%, #004d40);
             border-radius: 50%; border: 3px solid #bcaaa4;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.6); cursor: pointer; z-index: 20;
-            display: flex; justify-content: center; align-items: center; font-size: 1.8rem; color: #fff;
-            transition: 0.3s;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.6); cursor: pointer; z-index: 20;
+            display: flex; justify-content: center; align-items: center; font-size: 1.5rem; color: #fff;
+            transition: transform 0.2s;
         }
-        .axin-gem:active { transform: translateX(-50%) scale(0.9); }
+        .axin-gem:active { transform: translateX(-50%) scale(0.95); }
 
         /* --- VISTA 2: EL AXIN (MENTE) --- */
         .axin-view {
-            position: fixed; inset: 0; background: var(--fog-bg);
+            position: fixed; inset: 0; 
+            /* OPTIMIZACIÓN: Fondo estático en lugar de animación compleja */
+            background: radial-gradient(circle at center, #1a1a2e 0%, #000 90%);
             z-index: 100; opacity: 0; pointer-events: none;
-            transition: opacity 1.2s ease; overflow: hidden; perspective: 1000px;
+            transition: opacity 0.5s ease; 
+            overflow: hidden; perspective: 1000px;
             display: flex; flex-direction: column; align-items: center;
         }
         .axin-view.active { opacity: 1; pointer-events: all; }
 
-        /* Niebla Animada */
-        .fog-container { position: absolute; inset: 0; pointer-events: none; opacity: 0.4; }
-        .fog-img {
-            position: absolute; width: 300%; height: 300%; top: -100%; left: -100%;
-            background: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='f'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.01' numOctaves='5'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23f)' opacity='0.5'/%3E%3C/svg%3E");
-            animation: drift 60s linear infinite;
-        }
-        @keyframes drift { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        /* Niebla: Eliminada la animación pesada, sustituida por viñeta estática CSS */
+        .fog-container { position: absolute; inset: 0; pointer-events: none; background: radial-gradient(transparent 50%, #000 100%); opacity: 0.6; }
 
         .axin-title {
             margin-top: 3rem; font-family: var(--f-title); color: var(--rune-glow);
-            letter-spacing: 5px; font-size: 1.5rem; z-index: 2; text-shadow: 0 0 20px var(--rune-glow); opacity: 0.8;
+            letter-spacing: 4px; font-size: 1.4rem; z-index: 2; text-shadow: 0 0 15px var(--rune-glow); opacity: 0.9;
+            text-align: center;
         }
 
-        .rune-grid { flex: 1; width: 100%; display: flex; flex-wrap: wrap; justify-content: center; align-content: center; gap: 2rem; z-index: 2; padding: 2rem; overflow-y: auto;}
+        .rune-grid { flex: 1; width: 100%; display: flex; flex-wrap: wrap; justify-content: center; align-content: flex-start; gap: 1.5rem; z-index: 2; padding: 2rem 1rem; overflow-y: auto; -webkit-overflow-scrolling: touch; }
         
         .rune-card {
             display: flex; flex-direction: column; align-items: center; position: relative;
-            animation: float 4s ease-in-out infinite; animation-delay: var(--d);
+            /* Animación suave y barata de flotación */
+            animation: float 5s ease-in-out infinite; 
+            animation-delay: var(--d);
+            width: 80px;
         }
-        @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+        @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
         
-        .rune-symbol { font-size: 2.8rem; color: #fff; text-shadow: 0 0 10px var(--rune-glow); transition: 0.3s; }
-        .rune-name { margin-top: 8px; color: var(--rune-glow); font-family: var(--f-title); font-size: 0.8rem; opacity: 0.8; }
+        .rune-symbol { font-size: 2.5rem; color: #fff; text-shadow: 0 0 10px var(--rune-glow); transition: transform 0.2s; }
+        .rune-name { margin-top: 5px; color: var(--rune-glow); font-family: var(--f-title); font-size: 0.75rem; opacity: 0.8; text-align: center; }
         
         .rune-delete {
-            position: absolute; top: -5px; right: -10px; width: 22px; height: 22px;
+            position: absolute; top: -8px; right: -8px; width: 26px; height: 26px; /* Más grande para tocar */
             background: var(--alert-red); color: white; border-radius: 50%;
-            display: none; align-items: center; justify-content: center; font-weight: bold; font-size: 0.8rem;
+            display: none; align-items: center; justify-content: center; font-weight: bold; font-size: 0.9rem;
+            box-shadow: 0 0 5px rgba(0,0,0,0.5);
         }
         body.editing .rune-delete { display: flex; }
 
         .back-btn {
-            position: absolute; top: 20px; left: 20px; z-index: 10;
+            position: absolute; top: 15px; left: 15px; z-index: 10;
             background: transparent; border: 1px solid #444; color: #888;
-            padding: 5px 15px; font-family: var(--f-title);
+            padding: 8px 12px; font-family: var(--f-title); font-size: 0.9rem;
+            border-radius: 4px;
         }
 
         /* Controles Globales */
         .edit-toggle {
             position: fixed; bottom: 20px; right: 20px; z-index: 200;
-            font-size: 2rem; cursor: pointer; filter: grayscale(1); transition: 0.3s;
+            font-size: 2.2rem; cursor: pointer; filter: grayscale(1); transition: transform 0.2s;
+            background: rgba(0,0,0,0.3); border-radius: 50%; /* Fondo para legibilidad */
         }
         body.editing .edit-toggle { filter: grayscale(0) drop-shadow(0 0 5px gold); transform: scale(1.1); }
 
-        /* Modal */
-        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 300; display: none; justify-content: center; align-items: center; backdrop-filter: blur(5px); }
-        .modal-box { background: #121212; border: 1px solid #333; padding: 2rem; width: 90%; max-width: 400px; color: #ccc; }
-        .modal-box input, .modal-box textarea { width: 100%; background: #000; border: 1px solid #333; color: #fff; padding: 10px; margin-bottom: 15px; font-family: var(--f-body); }
+        /* Modal y Alertas */
+        .modal-overlay, .sys-alert-overlay { 
+            position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 300; 
+            display: none; justify-content: center; align-items: center; backdrop-filter: blur(2px); 
+        }
+        .modal-box, .sys-alert-box { 
+            background: #121212; border: 1px solid #333; padding: 1.5rem; width: 90%; max-width: 350px; color: #ccc; 
+            box-shadow: 0 10px 25px rgba(0,0,0,0.8); border-radius: 8px;
+        }
+        .modal-box input, .modal-box textarea { 
+            width: 100%; background: #000; border: 1px solid #333; color: #fff; padding: 12px; margin-bottom: 15px; 
+            font-family: var(--f-body); font-size: 1rem; border-radius: 4px;
+        }
+        
+        .sys-alert-box { border-color: var(--rune-glow); text-align: center; }
+        .sys-alert-box h3 { color: var(--rune-glow); margin-bottom: 1rem; font-family: var(--f-title); }
+        .sys-alert-actions { display: flex; gap: 10px; margin-top: 1.5rem; }
+        .sys-alert-actions button, .modal-box button {
+            flex: 1; padding: 12px; font-family: var(--f-title); cursor: pointer; border-radius: 4px; font-size: 0.9rem;
+        }
+        #mSave, #sysAlertOk { background: var(--rune-glow); color: #000; border: none; font-weight: bold; }
+        #mCancel, #sysAlertCancel { background: transparent; border: 1px solid #555; color: #aaa; }
 
-        /* --- ALERTA DE SISTEMA --- */
-        .sys-alert-overlay {
-            position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 999;
-            display: none; justify-content: center; align-items: center;
-            backdrop-filter: blur(4px);
-        }
-        .sys-alert-box {
-            background: #0a0a0a; border: 1px solid var(--rune-glow);
-            padding: 2rem; width: 90%; max-width: 350px;
-            text-align: center; box-shadow: 0 0 30px rgba(137, 207, 240, 0.2);
-            transform: scale(0.9); transition: transform 0.2s;
-        }
-        .sys-alert-overlay.active .sys-alert-box { transform: scale(1); }
-
-        .sys-alert-box h3 { color: var(--rune-glow); font-family: var(--f-title); margin-bottom: 1rem; letter-spacing: 2px; }
-        .sys-alert-box p { color: #ccc; font-family: var(--f-body); font-size: 1.2rem; margin-bottom: 2rem; }
-
-        .sys-alert-actions { display: flex; justify-content: space-around; gap: 10px; }
-        .sys-alert-actions button {
-            flex: 1; padding: 10px; cursor: pointer; font-family: var(--f-title); font-weight: bold;
-            border: 1px solid #333; background: transparent; color: #888; transition: 0.3s;
-        }
-        .sys-alert-actions button#sysAlertOk {
-            border-color: var(--rune-glow); color: var(--rune-glow);
-        }
-        .sys-alert-actions button:hover { background: rgba(255,255,255,0.1); }
     </style>
 </head>
 <body>
@@ -265,7 +286,7 @@
             </div>
 
         <div class="parchment-sheet" id="parchment">
-            <div class="wax-seal" id="statsBtn" title="Ver Atributos">✦</div>
+            <div class="wax-seal" id="statsBtn" title="Atributos">✦</div>
             
             <header class="char-header">
                 <span class="char-name" id="charName" contenteditable="false"></span>
@@ -276,7 +297,7 @@
                 <h3>Inventario</h3>
                 <ul class="inventory-list" id="inventoryList"></ul>
                 <div id="invEmpty" class="empty-msg">El zurrón está ligero...</div>
-                <button class="add-btn-styled" id="addInvBtn">+ Añadir Objeto</button>
+                <button class="add-btn-styled" id="addInvBtn">+ Objeto</button>
             </section>
         </div>
 
@@ -284,16 +305,14 @@
     </div>
 
     <div class="axin-view" id="axinView">
-        <div class="fog-container"><div class="fog-img"></div></div>
-        
-        <button class="back-btn" id="exitAxinBtn">← Volver</button>
+        <div class="fog-container"></div> <button class="back-btn" id="exitAxinBtn">← Volver</button>
         <h1 class="axin-title">SANTUARIO INTERIOR</h1>
 
         <div class="rune-grid" id="runeGrid"></div>
-        <button class="add-btn-styled" id="addRuneBtn" style="color:var(--rune-glow); border-color:var(--rune-glow); max-width: 200px; margin-bottom: 50px;">+ Inscribir Axioma</button>
+        <button class="add-btn-styled" id="addRuneBtn" style="color:var(--rune-glow); border-color:var(--rune-glow); max-width: 250px; margin-bottom: 80px;">+ Inscribir Axioma</button>
     </div>
 
-    <div class="edit-toggle" id="editToggle" title="Modo Edición">🗝️</div>
+    <div class="edit-toggle" id="editToggle">🗝️</div>
 
     <div class="modal-overlay" id="modal">
         <div class="modal-box">
@@ -301,9 +320,9 @@
             <input type="text" id="mName" placeholder="Nombre">
             <input type="text" id="mIcon" placeholder="Símbolo" maxlength="2">
             <textarea id="mDesc" rows="4" placeholder="Descripción..."></textarea>
-            <div style="text-align: right;">
-                <button id="mCancel" style="padding: 5px 15px; background: transparent; border: 1px solid #555; color: #888;">Cancelar</button>
-                <button id="mSave" style="padding: 5px 15px; background: var(--rune-glow); border: none; color: #000; font-weight: bold;">Guardar</button>
+            <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                <button id="mCancel">Cancelar</button>
+                <button id="mSave">Guardar</button>
             </div>
         </div>
     </div>
@@ -351,7 +370,7 @@
             renderAxin();
         }
 
-        // 1. Panel de Stats (Drawer)
+        // 1. Panel de Stats
         function renderStatsPanel() {
             dom.drawer.innerHTML = '';
             STAT_NAMES.forEach(stat => {
@@ -367,20 +386,20 @@
             });
         }
 
-        // Animación Drawer y Pergamino
+        // Interacción Drawer (Movimiento suavizado para móvil)
         dom.seal.onclick = () => {
             dom.seal.classList.toggle('open');
             dom.drawer.classList.toggle('active');
             
-            // Si abre el drawer, deslizar el pergamino a la izquierda para ver mejor en movil
             if(dom.drawer.classList.contains('active')) {
-                dom.parchment.style.transform = 'translateX(-50px) rotate(-1deg)';
+                // Desplazamiento más sutil en móvil para no perder foco
+                dom.parchment.style.transform = 'translateX(-40px) rotate(-1deg)';
             } else {
                 dom.parchment.style.transform = 'translateX(0) rotate(-1deg)';
             }
         };
 
-        // 2. Estudio (Datos e Inventario)
+        // 2. Estudio
         function renderStudy() {
             dom.name.innerText = data.name;
             dom.class.innerText = data.class;
@@ -398,34 +417,36 @@
             }
         }
 
-        // Listeners básicos
         [dom.name, dom.class].forEach(el => el.addEventListener('blur', () => {
             data.name = dom.name.innerText; data.class = dom.class.innerText; save();
         }));
         $('addInvBtn').onclick = () => { data.inventory.push("..."); save(); renderStudy(); };
+        
         window.delInv = (i) => { 
-            showConfirm("¿Quemar este objeto en la hoguera?").then((si) => {
+            showConfirm("¿Quemar este objeto?").then((si) => {
                 if(si) { data.inventory.splice(i,1); save(); renderStudy(); }
             });
         };
 
-        // 3. Axin (Runas)
+        // 3. Axin
         function renderAxin() {
             dom.runeGrid.innerHTML = '';
-            if(data.axioms.length === 0) dom.runeGrid.innerHTML = '<div class="rune-empty-state" style="color:#666; text-align:center; font-style:italic;">Silencio...</div>';
+            if(data.axioms.length === 0) dom.runeGrid.innerHTML = '<div class="rune-empty-state" style="color:#666; text-align:center; font-style:italic; width:100%;">Silencio...</div>';
             
             data.axioms.forEach((ax, i) => {
                 const el = document.createElement('div');
                 el.className = 'rune-card';
-                el.style.setProperty('--d', i*0.2+'s');
+                // Delay escalonado para la animación de flotación
+                el.style.setProperty('--d', (i * 0.2) + 's');
                 el.innerHTML = `<div class="rune-delete" onclick="delRune(event, ${ax.id})">✖</div><div class="rune-symbol">${ax.icon}</div><div class="rune-name">${ax.name}</div>`;
                 el.onclick = (e) => { if(!e.target.classList.contains('rune-delete')) openModal(ax); };
                 dom.runeGrid.appendChild(el);
             });
         }
+        
         window.delRune = (e, id) => { 
             e.stopPropagation(); 
-            showConfirm("¿Desterrar este conocimiento de tu mente?").then((si) => {
+            showConfirm("¿Olvidar Axioma?").then((si) => {
                 if(si) { data.axioms = data.axioms.filter(a=>a.id!==id); save(); renderAxin(); }
             });
         };
@@ -447,20 +468,15 @@
         };
         $('addRuneBtn').onclick = () => openModal(null);
 
-        // --- SISTEMA DE EDICIÓN GLOBAL ---
+        // Edición
         dom.toggle.onclick = () => {
             isEditing = !isEditing;
             dom.body.classList.toggle('editing', isEditing);
             dom.toggle.innerText = isEditing ? '🔓' : '🗝️';
-            
-            // Habilitar edición en pergamino
             dom.name.contentEditable = isEditing;
             dom.class.contentEditable = isEditing;
-            
-            // Habilitar inputs de stats
             Object.values(dom.statInputs).forEach(inp => inp.readOnly = !isEditing);
-            
-            renderStudy(); // Refrescar inventario
+            renderStudy();
         };
 
         // Navegación
@@ -469,7 +485,7 @@
 
         init();
 
-        // --- FUNCIÓN DE ALERTA PERSONALIZADA ---
+        // Alerta Personalizada
         function showConfirm(mensaje) {
             return new Promise((resolve) => {
                 const overlay = document.getElementById('sysAlert');
@@ -479,16 +495,14 @@
 
                 msgElem.innerText = mensaje;
                 overlay.style.display = 'flex';
-                setTimeout(() => overlay.classList.add('active'), 10); // Animación
+                setTimeout(() => overlay.classList.add('active'), 10);
 
-                // Definir qué pasa al clickar
                 const handleConfirm = () => { close(); resolve(true); };
                 const handleCancel = () => { close(); resolve(false); };
 
                 const close = () => {
                     overlay.classList.remove('active');
                     setTimeout(() => overlay.style.display = 'none', 200);
-                    // Limpiar listeners para evitar duplicados
                     btnOk.removeEventListener('click', handleConfirm);
                     btnCancel.removeEventListener('click', handleCancel);
                 };
